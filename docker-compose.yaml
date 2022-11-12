@@ -1,0 +1,62 @@
+
+version: '3.8'
+services:
+  httpd:
+    build:
+      context: .
+      dockerfile: httpd.Dockerfile
+    ports:
+      - 80:80
+    depends_on:
+      - database
+    networks:
+      - server
+
+
+
+  phpfpm:
+    build:
+      context: .
+      dockerfile: php.Dockerfile
+    expose:
+      - 9000
+    links:
+      - database
+    networks:
+      - server
+
+
+
+  database:
+      container_name: database
+      volumes:
+       - db-data:/var/lib/mysql
+      image: 'mysql'
+      environment:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      ports:
+          - '3306:3306'
+      networks:
+        - server
+
+
+  phpmyadmin:
+      container_name: pma
+      image: phpmyadmin
+      restart: always
+      ports:
+          - 8080:80
+      environment:
+          PMA_HOST: database
+          UPLOAD_LIMIT: 300M
+      networks:
+        - server
+
+
+
+networks:
+  server:
+    driver: bridge
+
+volumes:
+  db-data:
